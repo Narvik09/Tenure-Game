@@ -1,1 +1,1 @@
-A simple game based on Erdos-SelfRidge attacket defender games.
+A simple game based on the Erdos-Selfridge-Spencer Attacker Defender game.

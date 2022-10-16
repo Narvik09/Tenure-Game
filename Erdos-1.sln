@@ -1,6 +1,6 @@
 ﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BTP-Test-1", "BTP-Test-1.csproj", "{812EB0C9-E152-4AF4-81C6-25D362E1B47B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Erdos-1", "Erdos-1.csproj", "{812EB0C9-E152-4AF4-81C6-25D362E1B47B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
