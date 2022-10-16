@@ -1,0 +1,63 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://character.png" type="Texture" id=1]
+[ext_resource path="res://Soldier.cs" type="Script" id=2]
+
+[sub_resource type="Animation" id=1]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/path = NodePath("Position2D/Sprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 8 ]
+}
+
+[sub_resource type="Animation" id=2]
+resource_name = "walk_up"
+length = 0.8
+tracks/0/type = "value"
+tracks/0/path = NodePath("Position2D/Sprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.2, 0.4, 0.6 ),
+"transitions": PoolRealArray( 1, 1, 1, 1 ),
+"update": 1,
+"values": [ 8, 9, 10, 11 ]
+}
+
+[node name="Soldier" type="Node2D"]
+scale = Vector2( 0.3, 0.3 )
+script = ExtResource( 2 )
+
+[node name="Position2D" type="Position2D" parent="."]
+
+[node name="Sprite" type="Sprite" parent="Position2D"]
+position = Vector2( 0, -7.62939e-06 )
+scale = Vector2( 3.75, 1.875 )
+texture = ExtResource( 1 )
+centered = false
+hframes = 4
+vframes = 3
+frame = 8
+
+[node name="Button" type="Button" parent="Position2D"]
+self_modulate = Color( 1, 1, 1, 0 )
+margin_right = 60.0
+margin_bottom = 60.0
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+anims/RESET = SubResource( 1 )
+anims/walk_up = SubResource( 2 )
+
+[node name="Tween" type="Tween" parent="."]
+
+[connection signal="pressed" from="Position2D/Button" to="." method="OnButtonPressed"]
