@@ -4,20 +4,28 @@ using System.Collections.Generic;
 
 public class Main : Node2D
 {
+	
 #pragma warning disable 649
 	[Export]
 	public PackedScene SoldierScene;
 	[Export]
 	public PackedScene TileMapScene;
 #pragma warning restore 649
+
 	[Export]
-	public int maxCount = 15;
-	public int aliveSoldiers = 15;
+	public int maxCount = 160;
+	
+	public int aliveSoldiers = 160;
 	public int maxLevel = 15;
 	public RandomNumberGenerator rng;
 	bool killLeft = true;
+	
 	[Export]
 	bool defenderComputer = true;
+	
+	[Export]
+	bool attackerComputer = false;
+	
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
@@ -38,7 +46,7 @@ public class Main : Node2D
 		while (curCount < maxCount)
 		{
 			int x = rng.RandiRange(-tile.Rows / 2, tile.Rows / 2) * 18;
-			int y = rng.RandiRange(0, tile.Columns / 2) * 18;
+			int y = rng.RandiRange(-tile.Columns / 2 + 2, tile.Columns / 2) * 18;
 			Tuple<int, int> temp = Tuple.Create(x, y);
 			bool returnValue;
 			taken.TryGetValue(temp, out returnValue);
@@ -54,20 +62,61 @@ public class Main : Node2D
 				curCount++;
 			}
 		}
-		startP1Turn();
+		StartP1Turn();
+	}
+	
+	// Computes the optimal way of partitioning the soldiers.
+	public void PartitionSoldiers()
+	{
+		var soldiers = GetTree().GetNodesInGroup("soldiers");
+		List<Tuple<long, Soldier>> weightPairs = new List<Tuple<long, Soldier>>();
+		foreach (Soldier soldier in soldiers)
+		{
+			weightPairs.Add(Tuple.Create((long) (1 << soldier.level), soldier)); 
+		}
+		weightPairs.Sort((a, b) => a.Item1.CompareTo(b.Item1));
+		weightPairs.Reverse();
+		long sumLeft = 0, sumRight = 0;
+		foreach (Tuple<long, Soldier> weightPair in weightPairs)
+		{
+			Soldier curSoldier = weightPair.Item2;
+			if (sumLeft <= sumRight)
+			{
+				sumLeft += weightPair.Item1;
+				if (curSoldier.right)
+				{
+					curSoldier.FlipSoldier();
+				}
+			}
+			else
+			{
+				sumRight += weightPair.Item1;
+				if (!curSoldier.right)
+				{
+					curSoldier.FlipSoldier();
+				}
+			}
+		}
 	}
 
-	public void startP1Turn()
+	public void StartP1Turn()
 	{
+		GetNode<Button>("P1Done").Hide();
+		GetNode<Button>("P2Left").Hide();
+		GetNode<Button>("P2Right").Hide();
+		GetNode<Button>("P2Done").Hide();
+		GetNode<CheckButton>("CheckButton").Hide();
+		if (attackerComputer)
+		{
+			PartitionSoldiers();
+			OnP1DoneButtonDown();
+		}
 		var soldiers = GetTree().GetNodesInGroup("soldiers");
 		foreach (Soldier soldier in soldiers)
 		{
 			soldier.state = 0;
 		}
 		GetNode<Button>("P1Done").Show();
-		GetNode<Button>("P2Left").Hide();
-		GetNode<Button>("P2Right").Hide();
-		GetNode<Button>("P2Done").Hide();
 		GetNode<CheckButton>("CheckButton").Show();
 	}
 
@@ -126,14 +175,11 @@ public class Main : Node2D
 	public void OnP2LeftButtonDown()
 	{
 		killLeft = true;
-
-		// Replace with function body.
 	}
 
 	public void OnP2RightButtonDown()
 	{
 		killLeft = false;
-		// Replace with function body.
 	}
 
 	public void OnP2DoneButtonDown()
@@ -193,7 +239,7 @@ public class Main : Node2D
 				}
 			}
 		}
-		startP1Turn();
+		StartP1Turn();
 	}
 
 	public void OnCheckButtonPressed()

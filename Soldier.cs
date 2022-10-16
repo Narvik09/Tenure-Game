@@ -21,17 +21,22 @@ public class Soldier : Node2D
 		sprite.Frame = 6;
 	}
 
+	public void FlipSoldier()
+	{
+		var sprite = GetNode<Sprite>("Position2D/Sprite");
+		// sprite.Frame = 6;
+		sprite.FlipH = !sprite.FlipH;
+		right = !right;
+		string dir = (right) ? "R" : "L";
+		GD.Print("Soldier Clicked!!!");
+		GD.Print("Current Direction " + dir);
+	}
+
 	public void OnButtonPressed()
 	{
 		if (state == 0)
 		{
-			var sprite = GetNode<Sprite>("Position2D/Sprite");
-			// sprite.Frame = 6;
-			sprite.FlipH = !sprite.FlipH;
-			right = !right;
-			string dir = (right) ? "R" : "L";
-			GD.Print("Soldier Clicked!!!");
-			GD.Print("Current Direction " + dir);
+			FlipSoldier();
 		}
 	}
 
