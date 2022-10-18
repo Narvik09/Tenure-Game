@@ -8,9 +8,9 @@ public class TileMap : Godot.TileMap
     // private string b = "text";
     TileSet _tileset;
     [Export]
-    public int Rows = 18;
+    public int Rows = 20;
     [Export]
-    public int Columns = 18;
+    public int Columns = 20;
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()

@@ -20,7 +20,6 @@ tracks/0/keys = {
 
 [sub_resource type="Animation" id=2]
 resource_name = "walk_up"
-length = 0.8
 tracks/0/type = "value"
 tracks/0/path = NodePath("Position2D/Sprite:frame")
 tracks/0/interp = 1
@@ -28,10 +27,10 @@ tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 0.2, 0.4, 0.6 ),
-"transitions": PoolRealArray( 1, 1, 1, 1 ),
+"times": PoolRealArray( 0, 0.2, 0.4, 0.6, 0.8 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1 ),
 "update": 1,
-"values": [ 8, 9, 10, 11 ]
+"values": [ 8, 9, 10, 11, 8 ]
 }
 
 [node name="Soldier" type="Node2D"]
@@ -41,7 +40,6 @@ script = ExtResource( 2 )
 [node name="Position2D" type="Position2D" parent="."]
 
 [node name="Sprite" type="Sprite" parent="Position2D"]
-position = Vector2( 0, -7.62939e-06 )
 scale = Vector2( 3.75, 1.875 )
 texture = ExtResource( 1 )
 centered = false
