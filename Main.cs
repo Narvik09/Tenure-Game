@@ -32,21 +32,13 @@ public class Main : Node2D
         rng = new RandomNumberGenerator();
         rng.Randomize();
         GetNode<Label>("GameOver").Hide();
-        Start();
+        // GetNode<Label>("GameInst").Hide();
+        // change scene to start screen
+        // GetTree().ChangeScene("res://StartScreen.tscn");
+        Start(1);
     }
 
-    public void NewGame()
-    {
-        var hud = GetNode<HUD>("HUD");
-        hud.ShowMessage("Get Ready!");
-    }
-
-    public void GameOver()
-    {
-        GetNode<HUD>("HUD").ShowGameOver();
-    }
-
-    public void Start()
+    public void Start(int type)
     {
         var tile = (TileMap)TileMapScene.Instance();
         maxLevel = tile.Columns;
@@ -56,22 +48,37 @@ public class Main : Node2D
         int curCount = 0;
         while (curCount < maxCount)
         {
-            int x = rng.RandiRange(-tile.Rows / 2, tile.Rows / 2) * 18;
-            int y = rng.RandiRange(-tile.Columns / 2 + 2, tile.Columns / 2) * 18;
+            // updated coordinates based on new tile maps
+            int x = rng.RandiRange(-tile.Rows / 2, tile.Rows / 2 - 1) * 64;
+            int y = rng.RandiRange(-tile.Columns / 2, tile.Columns / 2 - 1) * 64;
             Tuple<int, int> temp = Tuple.Create(x, y);
             bool returnValue;
             taken.TryGetValue(temp, out returnValue);
             if (!returnValue)
             {
                 var soldier = (Soldier)SoldierScene.Instance();
-                soldier.Position = new Vector2(x, y);
-                soldier.level = (tile.Columns / 2 - y / 18);
+                soldier.Position = new Vector2(x, y - 4);
+                // check this and fix the levels
+                // 64 is one step for the soldier. 
+                soldier.level = (tile.Columns / 2 - y / 64);
                 GD.Print(soldier.Position);
                 soldier.AddToGroup("soldiers");
                 AddChild(soldier);
                 taken[temp] = true;
                 curCount++;
             }
+        }
+        if (type == 1)
+        {
+            // attacker starts, make defender computer
+        }
+        else if (type == 2)
+        {
+            // defender starts, make attacker computer
+        }
+        else
+        {
+            // multiplayer, attacker starts
         }
         StartP1Turn();
     }
@@ -129,7 +136,11 @@ public class Main : Node2D
             soldier._Ready();
         }
         GetNode<Button>("P1Done").Show();
-        GetNode<CheckButton>("CheckButton").Show();
+        // GetNode<CheckButton>("CheckButton").Show();
+        // instructions displayed during the game
+        var message = GetNode<Label>("GameInst");
+        message.Text = "Attacker's turn. Click on the players to make them face either left or right. The defender will remove the set facing left or right. Choose wisely!!!";
+        message.Show();
     }
 
     public void OnP1DoneButtonDown()
@@ -139,13 +150,21 @@ public class Main : Node2D
         var soldiers = GetTree().GetNodesInGroup("soldiers");
         foreach (Soldier soldier in soldiers)
         {
+            // flipping all the unshoosen players to th right
+            var sprite = soldier.GetNode<Sprite>("Position2D/Sprite");
             if (soldier.right)
             {
+                sprite.Frame = 6;
                 cntRight++;
             }
             else
             {
                 cntLeft++;
+                if (sprite.Frame == 0)
+                {
+                    sprite.Frame = 6;
+                    sprite.FlipH = !sprite.FlipH;
+                }
             }
             soldier.state = 1;
         }
@@ -181,20 +200,56 @@ public class Main : Node2D
         GetNode<Button>("P2Left").Show();
         GetNode<Button>("P2Right").Show();
         GetNode<Button>("P2Done").Show();
-        GetNode<CheckButton>("CheckButton").Hide();
+        // GetNode<CheckButton>("CheckButton").Hide();
+        var message = GetNode<Label>("GameInst");
+        message.Text = "Defender's Turn. Choose the set of players facing left or right to remove them. The remaining players will advance forward by one step. All the best!";
+        message.Show();
     }
 
     public void OnP2LeftButtonDown()
     {
         killLeft = true;
+        var soldiers = GetTree().GetNodesInGroup("soldiers");
+        // coloring the players belonging to a set when button is pressed. 
+        foreach (Soldier soldier in soldiers)
+        {
+            if (soldier.right == !killLeft)
+            {
+                soldier.GetNode<Sprite>("Position2D/Sprite").SelfModulate = new Color("#5ac3f1");
+            }
+            else
+            {
+                soldier.GetNode<Sprite>("Position2D/Sprite").SelfModulate = new Color(1, 1, 1);
+            }
+        }
+        var message = GetNode<Label>("GameInst");
+        message.Text = "Are you sure? If so, press the 'Done' button!";
+        message.Show();
     }
 
     public void OnP2RightButtonDown()
     {
         killLeft = false;
+        var soldiers = GetTree().GetNodesInGroup("soldiers");
+        // coloring the players belonging to a set when button is pressed. 
+        foreach (Soldier soldier in soldiers)
+        {
+            if (soldier.right == !killLeft)
+            {
+                soldier.GetNode<Sprite>("Position2D/Sprite").SelfModulate = new Color("#d75af1");
+            }
+            else
+            {
+                soldier.GetNode<Sprite>("Position2D/Sprite").SelfModulate = new Color(1, 1, 1);
+
+            }
+        }
+        var message = GetNode<Label>("GameInst");
+        message.Text = "Are you sure? If so, press the 'Done' button!";
+        message.Show();
     }
 
-    async public void OnP2DoneButtonDown()
+    public void OnP2DoneButtonDown()
     {
         var soldiers = GetTree().GetNodesInGroup("soldiers");
         foreach (Soldier soldier in soldiers)
@@ -220,41 +275,42 @@ public class Main : Node2D
                     GetNode<Button>("P2Left").Hide();
                     GetNode<Button>("P2Right").Hide();
                     GetNode<Button>("P2Done").Hide();
+                    GetNode<Label>("GameInst").Hide();
                     return;
                 }
             }
             else
             {
                 soldier.level++;
-                Vector2 targetPos = soldier.Position;
-                targetPos.y = targetPos.y - 18;
-                Tween tween = soldier.GetNode<Tween>("Tween");
-                AnimationPlayer animationPlayer = soldier.GetNode<AnimationPlayer>("AnimationPlayer");
-                animationPlayer.Play("walk_up");
-
-                tween.InterpolateProperty(soldier, "position", soldier.Position, targetPos, animationPlayer.CurrentAnimationLength);
-                tween.Start();
-                // problems : 
-                // playing player animation
-                // double click on done messes the position
-                // at the end, only few players move. 
-                await ToSignal(animationPlayer, "animation_finished");
-                // animationPlayer.Stop(reset: true);
-                soldier.Position = targetPos;
                 if (soldier.level == maxLevel)
                 {
                     GD.Print("Attacker wins!");
                     var label = GetNode<Label>("GameOver");
                     label.Text = "Game Over!\nAttacker Wins!!!";
                     label.Show();
+                    // do something so that soldier does not hit the wall
+                    // level calculation must be corrected
                     GetNode<Button>("P1Done").Hide();
                     GetNode<Button>("P2Left").Hide();
                     GetNode<Button>("P2Right").Hide();
                     GetNode<Button>("P2Done").Hide();
+                    GetNode<Label>("GameInst").Hide();
                     return;
                 }
+                Vector2 targetPos = soldier.Position;
+                targetPos.y = targetPos.y - 64;
+                Tween tween = soldier.GetNode<Tween>("Tween");
+                AnimationPlayer animationPlayer = soldier.GetNode<AnimationPlayer>("AnimationPlayer");
+                animationPlayer.Play("walk_up");
+
+                tween.InterpolateProperty(soldier, "position", soldier.Position, targetPos, animationPlayer.CurrentAnimationLength);
+                tween.Start();
+                soldier.Position = targetPos;
             }
         }
+        var message = GetNode<Label>("GameInst");
+        message.Text = "The players are moving forward. Wait for you turn...";
+        message.Show();
         StartP1Turn();
     }
 

@@ -8,35 +8,42 @@ public class TileMap : Godot.TileMap
     // private string b = "text";
     TileSet _tileset;
     [Export]
-    public int Rows = 20;
+    public int Rows = 10;
     [Export]
-    public int Columns = 20;
-
+    public int Columns = 10;
+    // public RandomNumberGenerator rng;
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
         // _tileset = GetTileset();
-        int temp_x = Rows / 2 + 1;
-        int temp_y = Columns / 2 + 1;
-        for (int i = -temp_x; i <= temp_x; i++)
+        int temp_x = Rows / 2;
+        int temp_y = Columns / 2;
+        for (int i = -temp_x; i < temp_x; i++)
         {
-            for (int j = -temp_y; j <= temp_y; j++)
+            for (int j = -temp_y; j < temp_y; j++)
             {
-                if (i == -temp_x || i == temp_x || j == -temp_y || j == temp_y)
-                {
-                    SetCell(i, j, TileSet.FindTileByName("borderGrass"));
-                }
-                else if (j == -temp_y + 1)
-                {
-                    SetCell(i, j, TileSet.FindTileByName("waterTile"));
-
-                }
-                else
-                {
-                    SetCell(i, j, TileSet.FindTileByName("grassTile"));
-                }
+                SetCell(i, j, TileSet.FindTileByName("Grass_8"));
             }
         }
+        for (int i = -temp_x; i < temp_x; i++)
+        {
+            if (i != -1 && i != 0)
+            {
+                SetCell(i, -temp_y - 2, TileSet.FindTileByName("Bottom_wall"));
+            }
+            SetCell(i, temp_y, TileSet.FindTileByName("Side_wall"), transpose: true);
+        }
+        for (int j = -temp_y; j < temp_y; j++)
+        {
+            SetCell(-temp_x - 1, j, TileSet.FindTileByName("Side_wall"), flipX: true);
+            SetCell(temp_x, j, TileSet.FindTileByName("Side_wall"));
+        }
+        SetCell(-temp_x - 1, -temp_y - 2, TileSet.FindTileByName("Top_corner"), flipX: true);
+        SetCell(temp_x - 1, -temp_y - 2, TileSet.FindTileByName("Top_corner"));
+        SetCell(-temp_x - 1, temp_y, TileSet.FindTileByName("Corner"), flipX: true);
+        SetCell(temp_x, temp_y, TileSet.FindTileByName("Corner"));
+        SetCell(-1, -temp_y - 2, TileSet.FindTileByName("Gate"));
+
     }
 
     //  // Called every frame. 'delta' is the elapsed time since the previous frame.
