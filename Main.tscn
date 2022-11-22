@@ -488,7 +488,6 @@ __meta__ = {
 }
 SoldierScene = ExtResource( 1 )
 TileMapScene = ExtResource( 3 )
-defenderComputer = false
 
 [node name="Background" parent="." instance=ExtResource( 3 )]
 scale = Vector2( 2, 2 )

@@ -34,7 +34,7 @@ public class StartScreen : CanvasLayer
 
     public void OnMultiplayerStartButtonDown()
     {
-        GetTree().ChangeScene("res://Main.tscn");
+        GetTree().ChangeScene("res://NetworkSetup.tscn");
         GD.Print("Multiplayer pressed!!!");
     }
 }
