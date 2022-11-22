@@ -45,7 +45,7 @@ texture = ExtResource( 1 )
 centered = false
 hframes = 4
 vframes = 3
-frame = 6
+frame = 8
 
 [node name="Button" type="Button" parent="Position2D"]
 self_modulate = Color( 1, 1, 1, 0 )

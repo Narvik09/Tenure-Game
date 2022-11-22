@@ -13,9 +13,9 @@ public class Main : Node2D
 #pragma warning restore 649
 
     [Export]
-    public int maxCount = 10;
+    public int maxCount = 15;
 
-    public int aliveSoldiers = 10;
+    public int aliveSoldiers = 15;
     public int maxLevel = 15;
     public RandomNumberGenerator rng;
     bool killLeft = true;
@@ -25,6 +25,8 @@ public class Main : Node2D
 
     [Export]
     bool attackerComputer = false;
+    [Export]
+    int type;
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
@@ -32,9 +34,7 @@ public class Main : Node2D
         rng = new RandomNumberGenerator();
         rng.Randomize();
         GetNode<Label>("GameOver").Hide();
-        // GetNode<Label>("GameInst").Hide();
-        // change scene to start screen
-        // GetTree().ChangeScene("res://StartScreen.tscn");
+        GetNode<Label>("GameInst").Hide();
         Start(1);
     }
 
@@ -63,11 +63,13 @@ public class Main : Node2D
                 soldier.level = (tile.Columns / 2 - y / 64);
                 GD.Print(soldier.Position);
                 soldier.AddToGroup("soldiers");
+                // soldier.Hide();
                 AddChild(soldier);
                 taken[temp] = true;
                 curCount++;
             }
         }
+        GD.Print(type);
         if (type == 1)
         {
             // attacker starts, make defender computer
@@ -139,7 +141,7 @@ public class Main : Node2D
         // GetNode<CheckButton>("CheckButton").Show();
         // instructions displayed during the game
         var message = GetNode<Label>("GameInst");
-        message.Text = "Attacker's turn. Click on the players to make them face either left or right. The defender will remove the set facing left or right. Choose wisely!!!";
+        // message.Text = "Attacker's turn. Click on the players to make them face either left or right. The defender will remove the set facing left or right. Choose wisely!!!";
         message.Show();
     }
 
@@ -202,7 +204,7 @@ public class Main : Node2D
         GetNode<Button>("P2Done").Show();
         // GetNode<CheckButton>("CheckButton").Hide();
         var message = GetNode<Label>("GameInst");
-        message.Text = "Defender's Turn. Choose the set of players facing left or right to remove them. The remaining players will advance forward by one step. All the best!";
+        // message.Text = "Defender's Turn. Choose the set of players facing left or right to remove them. The remaining players will advance forward by one step. All the best!";
         message.Show();
     }
 
@@ -249,7 +251,7 @@ public class Main : Node2D
         message.Show();
     }
 
-    public void OnP2DoneButtonDown()
+    public async void OnP2DoneButtonDown()
     {
         var soldiers = GetTree().GetNodesInGroup("soldiers");
         foreach (Soldier soldier in soldiers)
@@ -276,6 +278,9 @@ public class Main : Node2D
                     GetNode<Button>("P2Right").Hide();
                     GetNode<Button>("P2Done").Hide();
                     GetNode<Label>("GameInst").Hide();
+                    // add a timer
+                    await ToSignal(GetTree().CreateTimer(2), "timeout");
+                    GetTree().ChangeScene("res://StartScreen.tscn");
                     return;
                 }
             }
@@ -295,6 +300,9 @@ public class Main : Node2D
                     GetNode<Button>("P2Right").Hide();
                     GetNode<Button>("P2Done").Hide();
                     GetNode<Label>("GameInst").Hide();
+                    // add a timer 
+                    await ToSignal(GetTree().CreateTimer(2), "timeout");
+                    GetTree().ChangeScene("res://StartScreen.tscn");
                     return;
                 }
                 Vector2 targetPos = soldier.Position;

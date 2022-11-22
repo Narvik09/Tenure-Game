@@ -15,7 +15,7 @@ public class TileMap : Godot.TileMap
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
-        // _tileset = GetTileset();
+        _tileset = GetTileset();
         int temp_x = Rows / 2;
         int temp_y = Columns / 2;
         for (int i = -temp_x; i < temp_x; i++)
@@ -38,14 +38,13 @@ public class TileMap : Godot.TileMap
             SetCell(-temp_x - 1, j, TileSet.FindTileByName("Side_wall"), flipX: true);
             SetCell(temp_x, j, TileSet.FindTileByName("Side_wall"));
         }
-        SetCell(-temp_x - 1, -temp_y - 2, TileSet.FindTileByName("Top_corner"), flipX: true);
-        SetCell(temp_x - 1, -temp_y - 2, TileSet.FindTileByName("Top_corner"));
+        SetCell(-temp_x - 1, -temp_y - 2, TileSet.FindTileByName("Bottom_corner"), flipX: true);
+        SetCell(temp_x - 1, -temp_y - 2, TileSet.FindTileByName("Bottom_corner"));
         SetCell(-temp_x - 1, temp_y, TileSet.FindTileByName("Corner"), flipX: true);
         SetCell(temp_x, temp_y, TileSet.FindTileByName("Corner"));
         SetCell(-1, -temp_y - 2, TileSet.FindTileByName("Gate"));
 
     }
-
     //  // Called every frame. 'delta' is the elapsed time since the previous frame.
     //  public override void _Process(float delta)
     //  {

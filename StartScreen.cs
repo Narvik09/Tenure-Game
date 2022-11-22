@@ -16,21 +16,25 @@ public class StartScreen : CanvasLayer
     {
         GetNode<Button>("StartButton").Hide();
         EmitSignal("StartGame");
+
     }
 
     public void OnAttackerStartButtonDown()
     {
+        GetTree().ChangeScene("res://Main.tscn");
         GD.Print("Attacker pressed!!!");
 
     }
 
     public void OnDefenderStartButtonDown()
     {
+        GetTree().ChangeScene("res://Main.tscn");
         GD.Print("Defender pressed!!!");
     }
 
     public void OnMultiplayerStartButtonDown()
     {
+        GetTree().ChangeScene("res://Main.tscn");
         GD.Print("Multiplayer pressed!!!");
     }
 }
