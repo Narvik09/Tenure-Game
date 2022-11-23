@@ -9,7 +9,7 @@ public class StartScreen : CanvasLayer
     // Called when the node enters the scene tree for the first time.
     [Export]
     public PackedScene Main;
-    
+
     public override void _Ready()
     {
 
@@ -42,6 +42,7 @@ public class StartScreen : CanvasLayer
 
     public void OnMultiplayerStartButtonDown()
     {
+        GetTree().ChangeScene("res://NetworkSetup.tscn");
         GD.Print("Multiplayer pressed!!!");
         var main = (PackedScene)ResourceLoader.Load("res://Main.tscn");
         var inst = (Main)main.Instance();
