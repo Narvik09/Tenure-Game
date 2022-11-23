@@ -516,6 +516,7 @@ margin_bottom = 395.0
 custom_fonts/font = SubResource( 4 )
 
 [node name="P2Done" type="Button" parent="."]
+visible = false
 modulate = Color( 0.180392, 0.901961, 0.176471, 1 )
 margin_left = -48.0
 margin_top = 420.0
@@ -525,6 +526,7 @@ custom_fonts/font = SubResource( 5 )
 text = "Done"
 
 [node name="P2Right" type="Button" parent="."]
+visible = false
 modulate = Color( 0.843137, 0.352941, 0.945098, 1 )
 margin_left = 64.0
 margin_top = 364.0
@@ -534,6 +536,7 @@ custom_fonts/font = SubResource( 5 )
 text = "Remove Right"
 
 [node name="P2Left" type="Button" parent="."]
+visible = false
 modulate = Color( 0.352941, 0.764706, 0.945098, 1 )
 margin_left = -288.0
 margin_top = 364.0

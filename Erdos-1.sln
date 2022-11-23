@@ -1,12 +1,16 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Erdos-1", "Erdos-1.csproj", "{812EB0C9-E152-4AF4-81C6-25D362E1B47B}"
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33110.190
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Erdos-1", "Erdos-1.csproj", "{812EB0C9-E152-4AF4-81C6-25D362E1B47B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-	Debug|Any CPU = Debug|Any CPU
-	ExportDebug|Any CPU = ExportDebug|Any CPU
-	ExportRelease|Any CPU = ExportRelease|Any CPU
+		Debug|Any CPU = Debug|Any CPU
+		ExportDebug|Any CPU = ExportDebug|Any CPU
+		ExportRelease|Any CPU = ExportRelease|Any CPU
+		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{812EB0C9-E152-4AF4-81C6-25D362E1B47B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -15,5 +19,13 @@ Global
 		{812EB0C9-E152-4AF4-81C6-25D362E1B47B}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
 		{812EB0C9-E152-4AF4-81C6-25D362E1B47B}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
 		{812EB0C9-E152-4AF4-81C6-25D362E1B47B}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
+		{812EB0C9-E152-4AF4-81C6-25D362E1B47B}.Release|Any CPU.ActiveCfg = ExportRelease|Any CPU
+		{812EB0C9-E152-4AF4-81C6-25D362E1B47B}.Release|Any CPU.Build.0 = ExportRelease|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AEAA09C4-D336-41EF-A0A8-295522EAB45D}
 	EndGlobalSection
 EndGlobal

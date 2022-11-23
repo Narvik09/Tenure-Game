@@ -7,6 +7,9 @@ public class StartScreen : CanvasLayer
     // private int a = 2;
     // private string b = "text";
     // Called when the node enters the scene tree for the first time.
+    [Export]
+    public PackedScene Main;
+    
     public override void _Ready()
     {
 
@@ -21,20 +24,28 @@ public class StartScreen : CanvasLayer
 
     public void OnAttackerStartButtonDown()
     {
-        GetTree().ChangeScene("res://Main.tscn");
         GD.Print("Attacker pressed!!!");
-
+        var main = (PackedScene)ResourceLoader.Load("res://Main.tscn");
+        var inst = (Main)main.Instance();
+        inst.type = 1;
+        AddChild(inst);
     }
 
     public void OnDefenderStartButtonDown()
     {
-        GetTree().ChangeScene("res://Main.tscn");
         GD.Print("Defender pressed!!!");
+        var main = (PackedScene)ResourceLoader.Load("res://Main.tscn");
+        var inst = (Main)main.Instance();
+        inst.type = 2;
+        AddChild(inst);
     }
 
     public void OnMultiplayerStartButtonDown()
     {
-        GetTree().ChangeScene("res://Main.tscn");
         GD.Print("Multiplayer pressed!!!");
+        var main = (PackedScene)ResourceLoader.Load("res://Main.tscn");
+        var inst = (Main)main.Instance();
+        inst.type = 3;
+        AddChild(inst);
     }
 }

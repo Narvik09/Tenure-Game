@@ -25,8 +25,9 @@ public class Main : Node2D
 
     [Export]
     bool attackerComputer = false;
-    [Export]
-    int type;
+
+    public int type = 0;
+
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
@@ -35,10 +36,10 @@ public class Main : Node2D
         rng.Randomize();
         GetNode<Label>("GameOver").Hide();
         GetNode<Label>("GameInst").Hide();
-        Start(1);
+        Start();
     }
 
-    public void Start(int type)
+    public void Start()
     {
         var tile = (TileMap)TileMapScene.Instance();
         maxLevel = tile.Columns;
@@ -69,14 +70,18 @@ public class Main : Node2D
                 curCount++;
             }
         }
-        GD.Print(type);
+        GD.Print($"LMAO : {type}");
+        // player chooses attacker
         if (type == 1)
         {
-            // attacker starts, make defender computer
+            attackerComputer = false;
+            defenderComputer = true;
         }
+        // player chooses defender
         else if (type == 2)
         {
-            // defender starts, make attacker computer
+            attackerComputer = true;
+            defenderComputer = false;
         }
         else
         {
@@ -105,6 +110,7 @@ public class Main : Node2D
                 sumLeft += weightPair.Item1;
                 if (curSoldier.right)
                 {
+                    GD.Print("I am flipping");
                     curSoldier.FlipSoldier();
                 }
             }
@@ -114,6 +120,7 @@ public class Main : Node2D
                 if (!curSoldier.right)
                 {
                     curSoldier.FlipSoldier();
+                    //    curSoldier.FlipSoldier();
                 }
             }
         }
@@ -126,16 +133,16 @@ public class Main : Node2D
         GetNode<Button>("P2Right").Hide();
         GetNode<Button>("P2Done").Hide();
         GetNode<CheckButton>("CheckButton").Hide();
-        if (attackerComputer)
-        {
-            PartitionSoldiers();
-            OnP1DoneButtonDown();
-        }
         var soldiers = GetTree().GetNodesInGroup("soldiers");
         foreach (Soldier soldier in soldiers)
         {
             soldier.state = 0;
             soldier._Ready();
+        }
+        if (attackerComputer)
+        {
+            PartitionSoldiers();
+            OnP1DoneButtonDown();
         }
         GetNode<Button>("P1Done").Show();
         // GetNode<CheckButton>("CheckButton").Show();
@@ -152,7 +159,7 @@ public class Main : Node2D
         var soldiers = GetTree().GetNodesInGroup("soldiers");
         foreach (Soldier soldier in soldiers)
         {
-            // flipping all the unshoosen players to th right
+            // flipping all the unshoosen players to the right
             var sprite = soldier.GetNode<Sprite>("Position2D/Sprite");
             if (soldier.right)
             {
