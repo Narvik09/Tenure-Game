@@ -52,7 +52,7 @@ public class Main : Node2D
 
         // The higher the leeway, the bigger the attacker's advantage.
         // Leeway becomes negative when playing against a computerised defender.
-        int leewayAttacker = rng.RandiRange(0, minForAttacker / 4);
+        int leewayAttacker = rng.RandiRange(0, minForAttacker / 8);
         if (Option == "Defender")
         {
             leewayAttacker *= -1;
@@ -109,7 +109,6 @@ public class Main : Node2D
 
             while (numVacancies > tile.Columns - soldiersPerRow[i])
             {
-                GD.Print("Yo, i: " + i + "?");
                 int pos = rng.RandiRange(0, tile.Rows) % numVacancies;
                 int encountered = 0;
 
