@@ -3,10 +3,6 @@ using System;
 
 public class StartScreen : CanvasLayer
 {
-    // Declare member variables here. Examples:
-    // private int a = 2;
-    // private string b = "text";
-    // Called when the node enters the scene tree for the first time.
     [Export]
     public PackedScene Main;
 
@@ -51,7 +47,8 @@ public class StartScreen : CanvasLayer
 
     public void OnMultiplayerStartButtonDown()
     {
-        SetScene("Multiplayer", "res://NetworkSetup.tscn");
+        GD.Print("Multiplayer pressed!!!");
         HideButtons();
+        GetTree().ChangeScene("res://NetworkSetup.tscn");
     }
 }
