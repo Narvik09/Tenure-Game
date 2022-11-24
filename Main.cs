@@ -13,7 +13,7 @@ public class Main : Node2D
 
     [Export]
     public int MaxCount = 15;
-    public int AliveSoldiers = 15;
+    public int AliveSoldiers = 0;
     public int MaxLevel = 15;
     public bool KillLeft = true;
     [Export]
@@ -34,45 +34,123 @@ public class Main : Node2D
         Start();
     }
 
+    // Randomly initialises soldiers on the board.
     public void Start()
     {
         var tile = (TileMap)TileMapScene.Instance();
-        MaxLevel = tile.Columns;
-        // bool[,] taken = new bool[tile.Rows * 18, tile.Columns * 18];
-        Dictionary<Tuple<int, int>, bool> taken = new Dictionary<Tuple<int, int>, bool>();
-        GD.Print(tile.Rows, tile.Columns);
-        int curCount = 0;
-        while (curCount < MaxCount)
+
+        // A soldier reaching this level will win the game for the attacker.
+        // Levels start from 0.
+        MaxLevel = tile.Rows - 1;
+        int minForAttacker = (1 << (tile.Rows - 1));
+
+        GD.Print("Rows: " + tile.Rows + ", Columns: " + tile.Columns);
+        GD.Print("Max. possible level of a soldier: " + MaxLevel);
+
+        // The higher the leeway, the bigger the attacker's advantage.
+        // Leeway becomes negative when playing against a computerised defender.
+        int leewayAttacker = rng.RandiRange(0, minForAttacker / 4);
+        if (Option == "Defender")
         {
-            // updated coordinates based on new tile maps
-            int x = rng.RandiRange(-tile.Rows / 2, tile.Rows / 2 - 1) * 64;
-            int y = rng.RandiRange(-tile.Columns / 2, tile.Columns / 2 - 1) * 64;
-            Tuple<int, int> temp = Tuple.Create(x, y);
-            bool returnValue;
-            taken.TryGetValue(temp, out returnValue);
-            if (!returnValue)
+            leewayAttacker *= -1;
+        }
+
+        int totalSum = minForAttacker + leewayAttacker;
+        int[] soldiersPerRow = new int[tile.Rows];
+
+        GD.Print("Total sum of configuration: " + totalSum);
+
+        // Pre-emptively placing two soldiers on the penultimate row if necessary.
+        // Satisfies the minimum total weight required to allow the attacker to win.
+        if (totalSum >= minForAttacker)
+        {
+            soldiersPerRow[tile.Rows - 2] = 2;
+            AliveSoldiers = 2;
+        }
+
+        for (int i = tile.Rows - 2; i >= 0; i--)
+        {
+            if (((1 << i) & totalSum) > 0)
             {
-                var soldier = (Soldier)SoldierScene.Instance();
-                soldier.Position = new Vector2(x, y - 4);
-                // check this and fix the levels
-                // 64 is one step for the soldier. 
-                soldier.level = (tile.Columns / 2 - y / 64);
-                GD.Print(soldier.Position);
-                soldier.AddToGroup("soldiers");
-                // soldier.Hide();
-                AddChild(soldier);
-                taken[temp] = true;
-                curCount++;
+                soldiersPerRow[i]++;
+                AliveSoldiers++;
             }
         }
+
+        // Pushing some soldiers downwards (doubling them to maintain the same total weight sum).
+        // We try to push the penultimate soldiers down more.
+        // We also try to limit the number of splits.
+        for (int i = tile.Rows - 2; i > 0; i--)
+        {
+            int numInRow = soldiersPerRow[i];
+            for (int j = 0; j < numInRow; j++)
+            {
+                if (soldiersPerRow[i - 1] + 2 < tile.Columns)
+                {
+                    if (2 * AliveSoldiers < 3 * tile.Rows && 
+                    (rng.RandiRange(0, 2) == 0 || (i == tile.Rows - 2 && rng.RandiRange(0, 3) <= 2)))
+                    {
+                        soldiersPerRow[i]--;
+                        soldiersPerRow[i - 1] += 2;
+                        AliveSoldiers++;
+                    }
+                }
+            }
+        }
+
+        // Distributing soldiers randomly in each row.
+        for (int i = 0; i < tile.Rows; i++)
+        {
+            bool[] taken = new bool[tile.Columns];
+            int numVacancies = tile.Columns;
+
+            while (numVacancies > tile.Columns - soldiersPerRow[i])
+            {
+                GD.Print("Yo, i: " + i + "?");
+                int pos = rng.RandiRange(0, tile.Rows) % numVacancies;
+                int encountered = 0;
+
+                for (int j = 0; j < tile.Columns; j++)
+                {
+                    if (taken[j])
+                    {
+                        continue;
+                    }
+                    if (encountered < pos)
+                    {
+                        encountered++;
+                        continue;
+                    }
+
+                    // Add a new soldier.
+                    taken[j] = true;
+                    var soldier = (Soldier)SoldierScene.Instance();
+                    soldier.level = i;
+                    soldier.AddToGroup("soldiers");
+                    AddChild(soldier);
+
+                    // Position the soldier.
+                    int x = (-tile.Columns / 2 + j) * 64;
+                    int y = (tile.Rows / 2 - i - 1) * 64 - 4;
+                    soldier.Position = new Vector2(x, y);
+
+                    GD.Print("Soldier Position : " + soldier.Position);
+                    GD.Print("Soldier Level    : " + soldier.level);
+
+                    break;
+                }
+                numVacancies--;
+            }
+        }
+
         GD.Print($"User Role : {Option}");
-        // player chooses attacker
+        // Player chooses to attack vs the computer.
         if (Option == "Attacker")
         {
             AttackerComputer = false;
             DefenderComputer = true;
         }
-        // player chooses defender
+        // Player chooses to defend vs the computer.
         else if (Option == "Defender")
         {
             AttackerComputer = true;
@@ -80,11 +158,11 @@ public class Main : Node2D
         }
         else if (Option == "Multiplayer")
         {
-            // multiplayer, attacker starts
+            // Multiplayer mode?
         }
         else
         {
-            throw new ArgumentException("Invalid option choosen by player");
+            throw new ArgumentException("Invalid option choosen by player.");
         }
         StartP1Turn();
     }
@@ -161,7 +239,7 @@ public class Main : Node2D
         var soldiers = GetTree().GetNodesInGroup("soldiers");
         foreach (Soldier soldier in soldiers)
         {
-            // flipping all the unshoosen players to the right
+            // flipping all the unchosen players to the right
             var sprite = soldier.GetNode<Sprite>("Position2D/Sprite");
             if (soldier.right)
             {
@@ -297,6 +375,8 @@ public class Main : Node2D
             else
             {
                 soldier.level++;
+                GD.Print("Soldier gets to level: " + soldier.level);
+                GD.Print("Soldier gets to max level: " + MaxLevel);
                 if (soldier.level == MaxLevel)
                 {
                     GD.Print("Attacker wins!");
@@ -327,7 +407,7 @@ public class Main : Node2D
             }
         }
         var message = GetNode<Label>("GameInst");
-        message.Text = "The players are moving forward. Wait for you turn...";
+        message.Text = "The players are moving forward. Wait for your turn...";
         message.Show();
         StartP1Turn();
     }

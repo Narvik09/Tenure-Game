@@ -28,3 +28,7 @@ func _on_JoinGame_pressed():
 		Network.ip_address = server_ip_address.text
 		print("Creating a client connecting to IP address: " + Network.ip_address)
 		Network.create_client()
+
+
+func _on_BackButton_pressed():
+	get_tree().change_scene("res://StartScreen.tscn");

@@ -40,6 +40,14 @@ margin_right = 540.0
 margin_bottom = 390.0
 placeholder_text = "Enter IP Address"
 
+[node name="BackButton" type="Button" parent="MultiplayerConfigure"]
+margin_left = 260.0
+margin_top = 720.0
+margin_right = 272.0
+margin_bottom = 770.0
+rect_min_size = Vector2( 200, 50 )
+text = "Back to Start Menu"
+
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="DeviceIPAddress" type="Label" parent="CanvasLayer"]
@@ -50,3 +58,4 @@ margin_bottom = 770.0
 
 [connection signal="pressed" from="MultiplayerConfigure/CreateGame" to="." method="_on_CreateGame_pressed"]
 [connection signal="pressed" from="MultiplayerConfigure/JoinGame" to="." method="_on_JoinGame_pressed"]
+[connection signal="pressed" from="MultiplayerConfigure/BackButton" to="." method="_on_BackButton_pressed"]
