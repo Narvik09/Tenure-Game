@@ -45,6 +45,7 @@ public class TileMap : Godot.TileMap
         SetCell(-1, -temp_y - 2, TileSet.FindTileByName("Gate"));
 
     }
+
     //  // Called every frame. 'delta' is the elapsed time since the previous frame.
     //  public override void _Process(float delta)
     //  {

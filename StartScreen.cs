@@ -15,38 +15,43 @@ public class StartScreen : CanvasLayer
 
     }
 
-    public void OnStartButtonPressed()
-    {
-        GetNode<Button>("StartButton").Hide();
-        EmitSignal("StartGame");
+    // public void OnStartButtonPressed()
+    // {
+    //     GetNode<Button>("StartButton").Hide();
+    //     EmitSignal("StartGame");
+    // }
 
+    public void HideButtons()
+    {
+        GetNode<Button>("AttackerStartButton").Hide();
+        GetNode<Button>("DefenderStartButton").Hide();
+        GetNode<Button>("MultiplayerStartButton").Hide();
+    }
+
+    public void SetScene(string option, string scenePath)
+    {
+        GD.Print($"{option} pressed!!!");
+        var mainScene = (PackedScene)ResourceLoader.Load(scenePath);
+        var instance = (Main)mainScene.Instance();
+        instance.Option = option;
+        AddChild(instance);
     }
 
     public void OnAttackerStartButtonDown()
     {
-        GD.Print("Attacker pressed!!!");
-        var main = (PackedScene)ResourceLoader.Load("res://Main.tscn");
-        var inst = (Main)main.Instance();
-        inst.type = 1;
-        AddChild(inst);
+        SetScene("Attacker", "res://Main.tscn");
+        HideButtons();
     }
 
     public void OnDefenderStartButtonDown()
     {
-        GD.Print("Defender pressed!!!");
-        var main = (PackedScene)ResourceLoader.Load("res://Main.tscn");
-        var inst = (Main)main.Instance();
-        inst.type = 2;
-        AddChild(inst);
+        SetScene("Defender", "res://Main.tscn");
+        HideButtons();
     }
 
     public void OnMultiplayerStartButtonDown()
     {
-        GetTree().ChangeScene("res://NetworkSetup.tscn");
-        GD.Print("Multiplayer pressed!!!");
-        var main = (PackedScene)ResourceLoader.Load("res://Main.tscn");
-        var inst = (Main)main.Instance();
-        inst.type = 3;
-        AddChild(inst);
+        SetScene("Multiplayer", "res://NetworkSetup.tscn");
+        HideButtons();
     }
 }

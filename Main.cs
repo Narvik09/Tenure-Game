@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 public class Main : Node2D
 {
-
 #pragma warning disable 649
     [Export]
     public PackedScene SoldierScene;
@@ -13,21 +12,17 @@ public class Main : Node2D
 #pragma warning restore 649
 
     [Export]
-    public int maxCount = 15;
+    public int MaxCount = 15;
+    public int AliveSoldiers = 15;
+    public int MaxLevel = 15;
+    public bool KillLeft = true;
+    [Export]
+    public bool DefenderComputer = true;
+    [Export]
+    public bool AttackerComputer = false;
+    public string Option = "Attacker";
 
-    public int aliveSoldiers = 15;
-    public int maxLevel = 15;
     public RandomNumberGenerator rng;
-    bool killLeft = true;
-
-    [Export]
-    bool defenderComputer = true;
-
-    [Export]
-    bool attackerComputer = false;
-
-    public int type = 0;
-
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
@@ -42,12 +37,12 @@ public class Main : Node2D
     public void Start()
     {
         var tile = (TileMap)TileMapScene.Instance();
-        maxLevel = tile.Columns;
+        MaxLevel = tile.Columns;
         // bool[,] taken = new bool[tile.Rows * 18, tile.Columns * 18];
         Dictionary<Tuple<int, int>, bool> taken = new Dictionary<Tuple<int, int>, bool>();
         GD.Print(tile.Rows, tile.Columns);
         int curCount = 0;
-        while (curCount < maxCount)
+        while (curCount < MaxCount)
         {
             // updated coordinates based on new tile maps
             int x = rng.RandiRange(-tile.Rows / 2, tile.Rows / 2 - 1) * 64;
@@ -70,22 +65,26 @@ public class Main : Node2D
                 curCount++;
             }
         }
-        GD.Print($"LMAO : {type}");
+        GD.Print($"User Role : {Option}");
         // player chooses attacker
-        if (type == 1)
+        if (Option == "Attacker")
         {
-            attackerComputer = false;
-            defenderComputer = true;
+            AttackerComputer = false;
+            DefenderComputer = true;
         }
         // player chooses defender
-        else if (type == 2)
+        else if (Option == "Defender")
         {
-            attackerComputer = true;
-            defenderComputer = false;
+            AttackerComputer = true;
+            DefenderComputer = false;
+        }
+        else if (Option == "Multiplayer")
+        {
+            // multiplayer, attacker starts
         }
         else
         {
-            // multiplayer, attacker starts
+            throw new ArgumentException("Invalid option choosen by player");
         }
         StartP1Turn();
     }
@@ -110,7 +109,6 @@ public class Main : Node2D
                 sumLeft += weightPair.Item1;
                 if (curSoldier.right)
                 {
-                    GD.Print("I am flipping");
                     curSoldier.FlipSoldier();
                 }
             }
@@ -120,13 +118,12 @@ public class Main : Node2D
                 if (!curSoldier.right)
                 {
                     curSoldier.FlipSoldier();
-                    //    curSoldier.FlipSoldier();
                 }
             }
         }
     }
 
-    public void StartP1Turn()
+    public async void StartP1Turn()
     {
         GetNode<Button>("P1Done").Hide();
         GetNode<Button>("P2Left").Hide();
@@ -139,20 +136,25 @@ public class Main : Node2D
             soldier.state = 0;
             soldier._Ready();
         }
-        if (attackerComputer)
+        var message = GetNode<Label>("GameInst");
+        // instructions displayed during the game
+        message.Text = "Attacker's turn. Click on the players to make them face either left or right. The defender will remove the set facing left or right. Choose wisely!!!";
+        message.Show();
+        if (AttackerComputer)
         {
+            await ToSignal(GetTree().CreateTimer(1), "timeout");
             PartitionSoldiers();
             OnP1DoneButtonDown();
         }
-        GetNode<Button>("P1Done").Show();
+        else
+        {
+            GetNode<Button>("P1Done").Show();
+        }
         // GetNode<CheckButton>("CheckButton").Show();
-        // instructions displayed during the game
-        var message = GetNode<Label>("GameInst");
-        // message.Text = "Attacker's turn. Click on the players to make them face either left or right. The defender will remove the set facing left or right. Choose wisely!!!";
-        message.Show();
+
     }
 
-    public void OnP1DoneButtonDown()
+    public async void OnP1DoneButtonDown()
     {
         // Get the number of soldiers in each direction. 
         int cntLeft = 0, cntRight = 0;
@@ -179,7 +181,10 @@ public class Main : Node2D
         }
         GD.Print("Number of left facing: " + cntLeft);
         GD.Print("Number of right facing: " + cntRight);
-        if (defenderComputer)
+        var message = GetNode<Label>("GameInst");
+        message.Text = "Defender's Turn. Choose the set of players facing left or right to remove them. The remaining players will advance forward by one step. All the best!";
+        message.Show();
+        if (DefenderComputer)
         {
             // Choose the larger weighted partition.
             long leftSum = 0, rightSum = 0;
@@ -196,12 +201,13 @@ public class Main : Node2D
             }
             if (leftSum >= rightSum)
             {
-                killLeft = true;
+                KillLeft = true;
             }
             else
             {
-                killLeft = false;
+                KillLeft = false;
             }
+            await ToSignal(GetTree().CreateTimer(1), "timeout");
             OnP2DoneButtonDown();
             return;
         }
@@ -210,19 +216,17 @@ public class Main : Node2D
         GetNode<Button>("P2Right").Show();
         GetNode<Button>("P2Done").Show();
         // GetNode<CheckButton>("CheckButton").Hide();
-        var message = GetNode<Label>("GameInst");
-        // message.Text = "Defender's Turn. Choose the set of players facing left or right to remove them. The remaining players will advance forward by one step. All the best!";
-        message.Show();
+
     }
 
     public void OnP2LeftButtonDown()
     {
-        killLeft = true;
+        KillLeft = true;
         var soldiers = GetTree().GetNodesInGroup("soldiers");
         // coloring the players belonging to a set when button is pressed. 
         foreach (Soldier soldier in soldiers)
         {
-            if (soldier.right == !killLeft)
+            if (soldier.right == !KillLeft)
             {
                 soldier.GetNode<Sprite>("Position2D/Sprite").SelfModulate = new Color("#5ac3f1");
             }
@@ -238,19 +242,18 @@ public class Main : Node2D
 
     public void OnP2RightButtonDown()
     {
-        killLeft = false;
+        KillLeft = false;
         var soldiers = GetTree().GetNodesInGroup("soldiers");
         // coloring the players belonging to a set when button is pressed. 
         foreach (Soldier soldier in soldiers)
         {
-            if (soldier.right == !killLeft)
+            if (soldier.right == !KillLeft)
             {
                 soldier.GetNode<Sprite>("Position2D/Sprite").SelfModulate = new Color("#d75af1");
             }
             else
             {
                 soldier.GetNode<Sprite>("Position2D/Sprite").SelfModulate = new Color(1, 1, 1);
-
             }
         }
         var message = GetNode<Label>("GameInst");
@@ -264,7 +267,7 @@ public class Main : Node2D
         foreach (Soldier soldier in soldiers)
         {
             bool destroy = false;
-            if (soldier.right == !killLeft)
+            if (soldier.right == !KillLeft)
             {
                 destroy = true;
             }
@@ -273,8 +276,8 @@ public class Main : Node2D
                 soldier.RemoveFromGroup("soldier");
                 RemoveChild(soldier);
                 soldier.QueueFree();
-                aliveSoldiers--;
-                if (aliveSoldiers == 0)
+                AliveSoldiers--;
+                if (AliveSoldiers == 0)
                 {
                     GD.Print("Defender wins!");
                     var label = GetNode<Label>("GameOver");
@@ -294,7 +297,7 @@ public class Main : Node2D
             else
             {
                 soldier.level++;
-                if (soldier.level == maxLevel)
+                if (soldier.level == MaxLevel)
                 {
                     GD.Print("Attacker wins!");
                     var label = GetNode<Label>("GameOver");
@@ -331,7 +334,7 @@ public class Main : Node2D
 
     public void OnCheckButtonPressed()
     {
-        defenderComputer = !defenderComputer;
+        DefenderComputer = !DefenderComputer;
         // GetNode<Button>("P1Done").Hide();
     }
 }
