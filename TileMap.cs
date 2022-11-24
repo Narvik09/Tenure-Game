@@ -3,15 +3,11 @@ using System;
 
 public class TileMap : Godot.TileMap
 {
-    // Declare member variables here. Examples:
-    // private int a = 2;
-    // private string b = "text";
     TileSet _tileset;
     [Export]
     public int Rows = 10;
     [Export]
     public int Columns = 10;
-    // public RandomNumberGenerator rng;
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
@@ -22,7 +18,7 @@ public class TileMap : Godot.TileMap
         {
             for (int j = -temp_y; j < temp_y; j++)
             {
-                SetCell(i, j, TileSet.FindTileByName("Grass_8"));
+                SetCell(i, j, TileSet.FindTileByName("Grass_5"));
             }
         }
         for (int i = -temp_x; i < temp_x; i++)
@@ -38,8 +34,8 @@ public class TileMap : Godot.TileMap
             SetCell(-temp_x - 1, j, TileSet.FindTileByName("Side_wall"), flipX: true);
             SetCell(temp_x, j, TileSet.FindTileByName("Side_wall"));
         }
-        SetCell(-temp_x - 1, -temp_y - 2, TileSet.FindTileByName("Bottom_corner"), flipX: true);
-        SetCell(temp_x - 1, -temp_y - 2, TileSet.FindTileByName("Bottom_corner"));
+        SetCell(-temp_x - 1, -temp_y - 2, TileSet.FindTileByName("Top_corner"), flipX: true);
+        SetCell(temp_x - 1, -temp_y - 2, TileSet.FindTileByName("Top_corner"));
         SetCell(-temp_x - 1, temp_y, TileSet.FindTileByName("Corner"), flipX: true);
         SetCell(temp_x, temp_y, TileSet.FindTileByName("Corner"));
         SetCell(-1, -temp_y - 2, TileSet.FindTileByName("Gate"));

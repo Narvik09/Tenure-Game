@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 public class Main : Node2D
 {
@@ -21,13 +22,15 @@ public class Main : Node2D
     [Export]
     public bool AttackerComputer = false;
     public string Option = "Attacker";
-
+    public string GameWonBy = "None";
     public RandomNumberGenerator rng;
+    private object _lock;
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
         rng = new RandomNumberGenerator();
+        _lock = new object();
         rng.Randomize();
         GetNode<Label>("GameOver").Hide();
         GetNode<Label>("GameInst").Hide();
@@ -261,70 +264,69 @@ public class Main : Node2D
         message.Show();
     }
 
-    public async void OnP2DoneButtonDown()
+    public async void GameOver(string option)
+    {
+        GD.Print($"{option} wins!");
+        var label = GetNode<Label>("GameOver");
+        label.Text = $"Game Over!\n{option} Wins!!!";
+        label.Show();
+        GetNode<Button>("P1Done").Hide();
+        GetNode<Button>("P2Left").Hide();
+        GetNode<Button>("P2Right").Hide();
+        GetNode<Button>("P2Done").Hide();
+        GetNode<Label>("GameInst").Hide();
+        await ToSignal(GetTree().CreateTimer(2), "timeout");
+        GetTree().ChangeScene("res://StartScreen.tscn");
+    }
+
+    public async void PlayOrRemove(Soldier soldier)
+    {
+        bool destroy = false;
+        if (soldier.right == !KillLeft)
+        {
+            destroy = true;
+        }
+        if (destroy)
+        {
+            soldier.RemoveFromGroup("soldier");
+            RemoveChild(soldier);
+            soldier.QueueFree();
+            AliveSoldiers--;
+            if (AliveSoldiers == 0)
+            {
+                GameWonBy = "Defender";
+            }
+        }
+        else
+        {
+            soldier.level++;
+            if (soldier.level == MaxLevel)
+            {
+                GameWonBy = "Attacker";
+            }
+            Vector2 targetPos = soldier.Position;
+            targetPos.y = targetPos.y - 64;
+            Tween tween = soldier.GetNode<Tween>("Tween");
+            AnimationPlayer animationPlayer = soldier.GetNode<AnimationPlayer>("AnimationPlayer");
+            animationPlayer.Play("walk_up");
+            tween.InterpolateProperty(soldier, "position", soldier.Position, targetPos, animationPlayer.CurrentAnimationLength);
+            tween.Start();
+            await ToSignal(animationPlayer, "animation_finished");
+            soldier.Position = targetPos;
+        }
+    }
+
+    public void OnP2DoneButtonDown()
     {
         var soldiers = GetTree().GetNodesInGroup("soldiers");
         foreach (Soldier soldier in soldiers)
         {
-            bool destroy = false;
-            if (soldier.right == !KillLeft)
-            {
-                destroy = true;
-            }
-            if (destroy)
-            {
-                soldier.RemoveFromGroup("soldier");
-                RemoveChild(soldier);
-                soldier.QueueFree();
-                AliveSoldiers--;
-                if (AliveSoldiers == 0)
-                {
-                    GD.Print("Defender wins!");
-                    var label = GetNode<Label>("GameOver");
-                    label.Text = "Game Over!\nDefender Wins!!!";
-                    label.Show();
-                    GetNode<Button>("P1Done").Hide();
-                    GetNode<Button>("P2Left").Hide();
-                    GetNode<Button>("P2Right").Hide();
-                    GetNode<Button>("P2Done").Hide();
-                    GetNode<Label>("GameInst").Hide();
-                    // add a timer
-                    await ToSignal(GetTree().CreateTimer(2), "timeout");
-                    GetTree().ChangeScene("res://StartScreen.tscn");
-                    return;
-                }
-            }
-            else
-            {
-                soldier.level++;
-                if (soldier.level == MaxLevel)
-                {
-                    GD.Print("Attacker wins!");
-                    var label = GetNode<Label>("GameOver");
-                    label.Text = "Game Over!\nAttacker Wins!!!";
-                    label.Show();
-                    // do something so that soldier does not hit the wall
-                    // level calculation must be corrected
-                    GetNode<Button>("P1Done").Hide();
-                    GetNode<Button>("P2Left").Hide();
-                    GetNode<Button>("P2Right").Hide();
-                    GetNode<Button>("P2Done").Hide();
-                    GetNode<Label>("GameInst").Hide();
-                    // add a timer 
-                    await ToSignal(GetTree().CreateTimer(2), "timeout");
-                    GetTree().ChangeScene("res://StartScreen.tscn");
-                    return;
-                }
-                Vector2 targetPos = soldier.Position;
-                targetPos.y = targetPos.y - 64;
-                Tween tween = soldier.GetNode<Tween>("Tween");
-                AnimationPlayer animationPlayer = soldier.GetNode<AnimationPlayer>("AnimationPlayer");
-                animationPlayer.Play("walk_up");
-
-                tween.InterpolateProperty(soldier, "position", soldier.Position, targetPos, animationPlayer.CurrentAnimationLength);
-                tween.Start();
-                soldier.Position = targetPos;
-            }
+            PlayOrRemove(soldier);
+        }
+        if (GameWonBy != "None")
+        {
+            GameOver(GameWonBy);
+            return;
         }
         var message = GetNode<Label>("GameInst");
         message.Text = "The players are moving forward. Wait for you turn...";

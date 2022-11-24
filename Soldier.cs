@@ -2,13 +2,8 @@ using Godot;
 using System;
 public class Soldier : Node2D
 {
-    // Declare member variables here. Examples:
-    // private int a = 2;
-    // private string b = "text";
     public int state = 0;
     public bool right = true;
-    // var sprite = GetNode<Sprite>("Position2D/Sprite");
-
     public int down_frame = 8;
     [Export]
     public int right_frame = 6;

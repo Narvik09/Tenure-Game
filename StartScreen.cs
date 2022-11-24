@@ -22,6 +22,8 @@ public class StartScreen : CanvasLayer
         GetNode<Button>("AttackerStartButton").Hide();
         GetNode<Button>("DefenderStartButton").Hide();
         GetNode<Button>("MultiplayerStartButton").Hide();
+        GetNode<Label>("Description").Hide();
+        GetNode<Label>("Title").Hide();
     }
 
     public void SetScene(string option, string scenePath)
