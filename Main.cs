@@ -34,11 +34,12 @@ public class Main : Node2D
         rng.Randomize();
         GetNode<Label>("GameOver").Hide();
         GetNode<Label>("GameInst").Hide();
-        Start();
+        InitializeBoard();
+        StartP1Turn();
     }
 
     // Randomly initialises soldiers on the board.
-    public void Start()
+    public void InitializeBoard()
     {
         var tile = (TileMap)TileMapScene.Instance();
 
@@ -166,7 +167,6 @@ public class Main : Node2D
         {
             throw new ArgumentException("Invalid option choosen by player.");
         }
-        StartP1Turn();
     }
 
     // Computes the optimal way of partitioning the soldiers.

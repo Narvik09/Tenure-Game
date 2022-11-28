@@ -52,9 +52,10 @@ text = "Back to Start Menu"
 
 [node name="DeviceIPAddress" type="Label" parent="CanvasLayer"]
 margin_left = 160.0
-margin_top = 720.0
+margin_top = 1025.0
 margin_right = 560.0
-margin_bottom = 770.0
+margin_bottom = 1055.0
+align = 1
 
 [connection signal="pressed" from="MultiplayerConfigure/CreateGame" to="." method="_on_CreateGame_pressed"]
 [connection signal="pressed" from="MultiplayerConfigure/JoinGame" to="." method="_on_JoinGame_pressed"]
