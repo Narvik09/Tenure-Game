@@ -13,13 +13,13 @@ public class Soldier : Node2D
     public override void _Ready()
     {
         var sprite = GetNode<Sprite>("Position2D/Sprite");
-        sprite.Frame = 0;
+        sprite.Frame = 113;
     }
 
     public void FlipSoldier()
     {
         var sprite = GetNode<Sprite>("Position2D/Sprite");
-        sprite.Frame = 6;
+        sprite.Frame = 162;
         sprite.FlipH = !sprite.FlipH;
         right = !right;
         string dir = (right) ? "R" : "L";
