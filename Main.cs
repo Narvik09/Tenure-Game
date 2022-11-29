@@ -134,7 +134,7 @@ public class Main : Node2D
 
                     // Position the soldier.
                     int x = (-tile.Columns / 2 + j) * 64;
-                    int y = (tile.Rows / 2 - i - 1) * 64 - 4;
+                    int y = (tile.Rows / 2 - i - 1) * 64 - 7;
                     soldier.Position = new Vector2(x, y);
 
                     GD.Print("Soldier Position : " + soldier.Position);
@@ -246,15 +246,15 @@ public class Main : Node2D
             var sprite = soldier.GetNode<Sprite>("Position2D/Sprite");
             if (soldier.right)
             {
-                sprite.Frame = 6;
+                sprite.Frame = 162;
                 cntRight++;
             }
             else
             {
                 cntLeft++;
-                if (sprite.Frame == 0)
+                if (sprite.Frame == 113)
                 {
-                    sprite.Frame = 6;
+                    sprite.Frame = 162;
                     sprite.FlipH = !sprite.FlipH;
                 }
             }
