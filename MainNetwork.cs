@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-public class Main : Node2D
+public class MainNetwork : Node2D
 {
 #pragma warning disable 649
     [Export]
@@ -17,14 +17,12 @@ public class Main : Node2D
     public int AliveSoldiers = 0;
     public int MaxLevel = 15;
     public bool KillLeft = true;
-    [Export]
-    public bool DefenderComputer = true;
-    [Export]
-    public bool AttackerComputer = false;
-    public string Option = "Attacker";
     public string GameWonBy = "None";
     public RandomNumberGenerator rng;
     private object _lock;
+
+    [RemoteSyncAttribute]
+    List<Node> soldiers;
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
@@ -38,10 +36,27 @@ public class Main : Node2D
         StartP1Turn();
     }
 
+    [RemoteAttribute]
+    public void UpdateSoldiers()
+    {
+        RsetUnreliable("soldiers", soldiers);
+    }
+
     // Randomly initialises soldiers on the board.
     public void InitializeBoard()
     {
         var tile = (TileMap)TileMapScene.Instance();
+        if (!GetTree().IsNetworkServer())
+        {
+            GD.Print(GetTree().GetNetworkPeer().GetConnectionStatus());
+            GD.Print("Performing an RPC...");
+            RpcId(1, "UpdateSoldiers");
+            foreach (Soldier soldier in soldiers)
+            {
+                soldier.Show();
+            }
+            return;
+        }
 
         // A soldier reaching this level will win the game for the attacker.
         // Levels start from 0.
@@ -52,13 +67,7 @@ public class Main : Node2D
         GD.Print("Max. possible level of a soldier: " + MaxLevel);
 
         // The higher the leeway, the bigger the attacker's advantage.
-        // Leeway becomes negative when playing against a computerised defender.
         int leewayAttacker = rng.RandiRange(0, minForAttacker / 8);
-        if (Option == "Defender")
-        {
-            leewayAttacker *= -1;
-        }
-
         int totalSum = minForAttacker + leewayAttacker;
         int[] soldiersPerRow = new int[tile.Rows];
 
@@ -134,7 +143,7 @@ public class Main : Node2D
 
                     // Position the soldier.
                     int x = (-tile.Columns / 2 + j) * 64;
-                    int y = (tile.Rows / 2 - i - 1) * 64 - 7;
+                    int y = (tile.Rows / 2 - i - 1) * 64 - 4;
                     soldier.Position = new Vector2(x, y);
 
                     GD.Print("Soldier Position : " + soldier.Position);
@@ -145,65 +154,9 @@ public class Main : Node2D
                 numVacancies--;
             }
         }
-
-        GD.Print($"User Role : {Option}");
-        // Player chooses to attack vs the computer.
-        if (Option == "Attacker")
-        {
-            AttackerComputer = false;
-            DefenderComputer = true;
-        }
-        // Player chooses to defend vs the computer.
-        else if (Option == "Defender")
-        {
-            AttackerComputer = true;
-            DefenderComputer = false;
-        }
-        else if (Option == "Multiplayer")
-        {
-            // Multiplayer mode?
-        }
-        else
-        {
-            throw new ArgumentException("Invalid option choosen by player.");
-        }
     }
 
-    // Computes the optimal way of partitioning the soldiers.
-    public void PartitionSoldiers()
-    {
-        var soldiers = GetTree().GetNodesInGroup("soldiers");
-        List<Tuple<long, Soldier>> weightPairs = new List<Tuple<long, Soldier>>();
-        foreach (Soldier soldier in soldiers)
-        {
-            weightPairs.Add(Tuple.Create((long)(1 << soldier.level), soldier));
-        }
-        weightPairs.Sort((a, b) => a.Item1.CompareTo(b.Item1));
-        weightPairs.Reverse();
-        long sumLeft = 0, sumRight = 0;
-        foreach (Tuple<long, Soldier> weightPair in weightPairs)
-        {
-            Soldier curSoldier = weightPair.Item2;
-            if (sumLeft <= sumRight)
-            {
-                sumLeft += weightPair.Item1;
-                if (curSoldier.right)
-                {
-                    curSoldier.FlipSoldier();
-                }
-            }
-            else
-            {
-                sumRight += weightPair.Item1;
-                if (!curSoldier.right)
-                {
-                    curSoldier.FlipSoldier();
-                }
-            }
-        }
-    }
-
-    public async void StartP1Turn()
+    public void StartP1Turn()
     {
         GetNode<Button>("P1Done").Hide();
         GetNode<Button>("P2Left").Hide();
@@ -217,21 +170,10 @@ public class Main : Node2D
             soldier._Ready();
         }
         var message = GetNode<Label>("GameInst");
-        // instructions displayed during the game
+        // Instructions displayed during the game
         message.Text = "Attacker's turn. Click on the players to make them face either left or right. The defender will remove the set facing left or right. Choose wisely!!!";
         message.Show();
-        if (AttackerComputer)
-        {
-            await ToSignal(GetTree().CreateTimer(1), "timeout");
-            PartitionSoldiers();
-            OnP1DoneButtonDown();
-        }
-        else
-        {
-            GetNode<Button>("P1Done").Show();
-        }
-        // GetNode<CheckButton>("CheckButton").Show();
-
+        GetNode<Button>("P1Done").Show();
     }
 
     public async void OnP1DoneButtonDown()
@@ -245,15 +187,15 @@ public class Main : Node2D
             var sprite = soldier.GetNode<Sprite>("Position2D/Sprite");
             if (soldier.right)
             {
-                sprite.Frame = 162;
+                sprite.Frame = 6;
                 cntRight++;
             }
             else
             {
                 cntLeft++;
-                if (sprite.Frame == 113)
+                if (sprite.Frame == 0)
                 {
-                    sprite.Frame = 162;
+                    sprite.Frame = 6;
                     sprite.FlipH = !sprite.FlipH;
                 }
             }
@@ -264,39 +206,10 @@ public class Main : Node2D
         var message = GetNode<Label>("GameInst");
         message.Text = "Defender's Turn. Choose the set of players facing left or right to remove them. The remaining players will advance forward by one step. All the best!";
         message.Show();
-        if (DefenderComputer)
-        {
-            // Choose the larger weighted partition.
-            long leftSum = 0, rightSum = 0;
-            foreach (Soldier soldier in soldiers)
-            {
-                if (!soldier.right)
-                {
-                    leftSum += (1 << soldier.level);
-                }
-                else
-                {
-                    rightSum += (1 << soldier.level);
-                }
-            }
-            if (leftSum >= rightSum)
-            {
-                KillLeft = true;
-            }
-            else
-            {
-                KillLeft = false;
-            }
-            await ToSignal(GetTree().CreateTimer(1), "timeout");
-            OnP2DoneButtonDown();
-            return;
-        }
         GetNode<Button>("P1Done").Hide();
         GetNode<Button>("P2Left").Show();
         GetNode<Button>("P2Right").Show();
         GetNode<Button>("P2Done").Show();
-        // GetNode<CheckButton>("CheckButton").Hide();
-
     }
 
     public void OnP2LeftButtonDown()
@@ -409,11 +322,5 @@ public class Main : Node2D
         message.Text = "The players are moving forward. Wait for your turn...";
         message.Show();
         StartP1Turn();
-    }
-
-    public void OnCheckButtonPressed()
-    {
-        DefenderComputer = !DefenderComputer;
-        // GetNode<Button>("P1Done").Hide();
     }
 }

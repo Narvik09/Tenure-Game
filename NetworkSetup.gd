@@ -17,10 +17,16 @@ func _player_connected(id) -> void:
 	
 func _player_disconnected(id) -> void:
 	print("Player " + str(id) + " has disconnected.")
+	yield(get_tree().create_timer(2.0), "timeout")
+	get_tree().change_scene("res://StartScreen.tscn")
 
 func _on_CreateGame_pressed():
 	multiplayer_config_ui.hide()
 	Network.create_server()
+	
+	var main_network = load("res://MainNetwork.tscn")
+	main_network = main_network.instance()
+	add_child(main_network)
 
 func _on_JoinGame_pressed():
 	if (server_ip_address.text != ""):
@@ -28,6 +34,10 @@ func _on_JoinGame_pressed():
 		Network.ip_address = server_ip_address.text
 		print("Creating a client connecting to IP address: " + Network.ip_address)
 		Network.create_client()
+		
+		var main_network = load("res://MainNetwork.tscn")
+		main_network = main_network.instance()
+		add_child(main_network)
 
 
 func _on_BackButton_pressed():
