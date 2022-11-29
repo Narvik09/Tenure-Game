@@ -34,12 +34,11 @@ public class Main : Node2D
         rng.Randomize();
         GetNode<Label>("GameOver").Hide();
         GetNode<Label>("GameInst").Hide();
-        InitializeBoard();
-        StartP1Turn();
+        Start();
     }
 
     // Randomly initialises soldiers on the board.
-    public void InitializeBoard()
+    public void Start()
     {
         var tile = (TileMap)TileMapScene.Instance();
 
@@ -53,7 +52,7 @@ public class Main : Node2D
 
         // The higher the leeway, the bigger the attacker's advantage.
         // Leeway becomes negative when playing against a computerised defender.
-        int leewayAttacker = rng.RandiRange(0, minForAttacker / 8);
+        int leewayAttacker = rng.RandiRange(0, minForAttacker / 4);
         if (Option == "Defender")
         {
             leewayAttacker *= -1;
@@ -110,6 +109,7 @@ public class Main : Node2D
 
             while (numVacancies > tile.Columns - soldiersPerRow[i])
             {
+                GD.Print("Yo, i: " + i + "?");
                 int pos = rng.RandiRange(0, tile.Rows) % numVacancies;
                 int encountered = 0;
 
@@ -167,6 +167,7 @@ public class Main : Node2D
         {
             throw new ArgumentException("Invalid option choosen by player.");
         }
+        StartP1Turn();
     }
 
     // Computes the optimal way of partitioning the soldiers.

@@ -15,7 +15,7 @@ func _ready() -> void:
 		ip_address = IP.get_local_addresses()[3]
 	
 	for ip in IP.get_local_addresses():
-		if ip.begins_with("192") or ip.begins_with("10"):
+		if ip.begins_with("127"):
 		# if (ip.begins_with("192") or ip.begins_with("127") or ip.begins_with("10")):
 			ip_address = ip
 			
@@ -32,7 +32,6 @@ func create_client() -> void:
 	client = NetworkedMultiplayerENet.new()
 	client.create_client(ip_address, DEFAULT_PORT)
 	get_tree().set_network_peer(client)
-	print(get_tree().get_network_peer().get_connection_status())
 	print("Client created.")
 	
 func _connected_to_server() -> void:
@@ -40,5 +39,3 @@ func _connected_to_server() -> void:
 	
 func _server_disconnected() -> void:
 	print("Disconnected from the server.")
-	yield(get_tree().create_timer(2.0), "timeout")
-	get_tree().change_scene("res://StartScreen.tscn")
